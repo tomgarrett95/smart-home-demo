@@ -1,6 +1,9 @@
 {
   "name": "smart-home-demo",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -13,5 +16,9 @@
   "type": "commonjs",
   "engines": {
     "node": ">=24"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.7",
+    "prettier": "^3.9.10"
   }
 }

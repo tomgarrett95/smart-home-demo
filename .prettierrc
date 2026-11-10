@@ -1,0 +1,18 @@
+{
+  "trailingComma": "es5",
+  "tabWidth": 4,
+  "semi": false,
+  "singleQuote": true,
+  "arrowParens": "always",
+  "printWidth": 90,
+  "singleAttributePerLine": true,
+  "endingPosition": "absolute-with-indent",
+  "overrides": [
+    {
+      "files": ["*.json", "*.scss", "*.yml"],
+      "options": {
+        "tabWidth": 2
+      }
+    }
+  ]
+}
