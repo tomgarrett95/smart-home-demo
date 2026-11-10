@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "typecheck": "tsc",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "db:migrate": "kysely migrate latest",
     "db:rollback": "kysely migrate down",
     "db:seed": "kysely seed run"
