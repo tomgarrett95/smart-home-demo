@@ -15,7 +15,7 @@ export const paths = {
         },
         device: {
             path: ':deviceId',
-            getHref: (id: string) => `/app/devices/${id}`,
+            getHref: (id: number) => `/app/devices/${id}`,
         },
     },
 } as const
