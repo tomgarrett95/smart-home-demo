@@ -4,5 +4,12 @@
     "lib": ["ES2022"],
     "types": ["node"]
   },
-  "include": ["src", "migrations", "seeds", "test", "kysely.config.ts", "vitest.config.ts"]
+  "include": [
+    "src",
+    "migrations",
+    "seeds",
+    "test",
+    "kysely.config.ts",
+    "vitest.config.ts"
+  ]
 }

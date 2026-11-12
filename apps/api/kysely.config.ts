@@ -1,7 +1,7 @@
-import 'dotenv/config';
-import { PostgresDialect } from 'kysely';
-import { defineConfig } from 'kysely-ctl';
-import { Pool } from 'pg';
+import 'dotenv/config'
+import { PostgresDialect } from 'kysely'
+import { defineConfig } from 'kysely-ctl'
+import { Pool } from 'pg'
 
 export default defineConfig({
     dialect: new PostgresDialect({
@@ -9,4 +9,4 @@ export default defineConfig({
     }),
     migrations: { migrationFolder: 'migrations' },
     seeds: { seedFolder: 'seeds' },
-});
+})

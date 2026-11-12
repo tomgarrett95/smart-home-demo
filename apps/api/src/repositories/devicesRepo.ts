@@ -1,6 +1,10 @@
-import type { CreateDeviceInput, Device, UpdateDeviceInput } from '@smart-home/packages/devices';
-import { sql } from 'kysely';
-import { db } from '../db/client';
+import type {
+    CreateDeviceInput,
+    Device,
+    UpdateDeviceInput,
+} from '@smart-home/packages/devices'
+import { sql } from 'kysely'
+import { db } from '../db/client'
 
 const deviceWithRoomColumns = [
     'devices.id',
@@ -11,7 +15,7 @@ const deviceWithRoomColumns = [
     'devices.updated_at',
     'rooms.id as room_id',
     'rooms.name as room_name',
-] as const;
+] as const
 
 // Every read goes through this query, so a device always comes back with its room.
 // An inner join is right here: room_id is NOT NULL with a foreign key, so every device has a room.
@@ -19,12 +23,12 @@ function selectDevicesWithRoom() {
     return db
         .selectFrom('devices')
         .innerJoin('rooms', 'rooms.id', 'devices.room_id')
-        .select(deviceWithRoomColumns);
+        .select(deviceWithRoomColumns)
 }
 
 type DeviceWithRoomRow = NonNullable<
     Awaited<ReturnType<ReturnType<typeof selectDevicesWithRoom>['executeTakeFirst']>>
->;
+>
 
 // The one place the database shape becomes the API shape.
 // Fields are listed explicitly so new columns never leak into responses by accident.
@@ -37,7 +41,7 @@ function toDevice(row: DeviceWithRoomRow): Device {
         status: row.status,
         createdAt: row.created_at.toISOString(),
         updatedAt: row.updated_at.toISOString(),
-    };
+    }
 }
 
 export const devicesRepo = {
@@ -45,13 +49,15 @@ export const devicesRepo = {
         const rows = await selectDevicesWithRoom()
             .orderBy('rooms.name')
             .orderBy('devices.name')
-            .execute();
-        return rows.map(toDevice);
+            .execute()
+        return rows.map(toDevice)
     },
 
     async findById(id: number): Promise<Device | undefined> {
-        const row = await selectDevicesWithRoom().where('devices.id', '=', id).executeTakeFirst();
-        return row ? toDevice(row) : undefined;
+        const row = await selectDevicesWithRoom()
+            .where('devices.id', '=', id)
+            .executeTakeFirst()
+        return row ? toDevice(row) : undefined
     },
 
     // Writes use a data-modifying CTE: the write and the join with rooms happen in one statement,
@@ -73,14 +79,14 @@ export const devicesRepo = {
                         room_id: input.roomId,
                         status: input.status,
                     })
-                    .returningAll(),
+                    .returningAll()
             )
             .selectFrom('written as devices')
             .innerJoin('rooms', 'rooms.id', 'devices.room_id')
             .select(deviceWithRoomColumns)
-            .executeTakeFirstOrThrow();
+            .executeTakeFirstOrThrow()
 
-        return toDevice(row);
+        return toDevice(row)
     },
 
     // Fields that weren't sent are undefined, and Kysely leaves undefined values out of the SET clause.
@@ -97,18 +103,21 @@ export const devicesRepo = {
                         updated_at: sql`now()`,
                     })
                     .where('id', '=', id)
-                    .returningAll(),
+                    .returningAll()
             )
             .selectFrom('written as devices')
             .innerJoin('rooms', 'rooms.id', 'devices.room_id')
             .select(deviceWithRoomColumns)
-            .executeTakeFirst();
+            .executeTakeFirst()
 
-        return row ? toDevice(row) : undefined;
+        return row ? toDevice(row) : undefined
     },
 
     async remove(id: number): Promise<boolean> {
-        const result = await db.deleteFrom('devices').where('id', '=', id).executeTakeFirst();
-        return result.numDeletedRows > 0n;
+        const result = await db
+            .deleteFrom('devices')
+            .where('id', '=', id)
+            .executeTakeFirst()
+        return result.numDeletedRows > 0n
     },
-};
+}
