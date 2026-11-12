@@ -6,12 +6,12 @@ export const paths = {
 
     app: {
         root: {
-            path: '/devices',
-            getHref: () => '/devices',
+            path: '/app/devices',
+            getHref: () => '/app/devices',
         },
         devices: {
             path: '',
-            getHref: () => '/devices',
+            getHref: () => '/app/devices',
         },
         device: {
             path: ':deviceId',
