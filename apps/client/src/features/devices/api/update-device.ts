@@ -25,19 +25,21 @@ export const useUpdateDevice = ({ mutationConfig }: UseUpdateDeviceOptions = {})
     const { onSuccess, ...restConfig } = mutationConfig || {}
 
     return useMutation({
-        onSuccess: async (data, ...args) => {
+        onSuccess: async (modifiedDevice, ...args) => {
             queryClient.setQueryData<Device[]>(
                 getDevicesQueryOptions().queryKey,
                 (devices) =>
                     devices?.map((device) =>
-                        String(device.id) === String(data.id) ? data : device
+                        String(device.id) === String(modifiedDevice.id)
+                            ? modifiedDevice
+                            : device
                     )
             )
 
             await queryClient.refetchQueries({
-                queryKey: getDeviceQueryOptions(String(data.id)).queryKey,
+                queryKey: getDeviceQueryOptions(String(modifiedDevice.id)).queryKey,
             })
-            onSuccess?.(data, ...args)
+            onSuccess?.(modifiedDevice, ...args)
         },
         ...restConfig,
         mutationFn: updateDevice,
