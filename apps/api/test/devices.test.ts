@@ -33,8 +33,8 @@ describe('POST /api/devices', () => {
     const kitchen = await insertRoom('Kitchen');
 
     const res = await request(app)
-      .post('/api/devices')
-      .send({ deviceType: 'plug', name: 'Kettle', roomId: kitchen.id, status: 'on' });
+        .post('/api/devices')
+        .send({ deviceType: 'plug', name: 'Kettle', roomId: kitchen.id, status: 'on' });
 
     expect(res.status).toBe(201);
     expect(res.body).toMatchObject({
@@ -52,8 +52,8 @@ describe('POST /api/devices', () => {
     const kitchen = await insertRoom('Kitchen');
 
     await request(app)
-      .post('/api/devices')
-      .send({ deviceType: 'plug', name: 'Kettle', roomId: kitchen.id });
+        .post('/api/devices')
+        .send({ deviceType: 'plug', name: 'Kettle', roomId: kitchen.id });
 
     const rows = await db.selectFrom('devices').selectAll().execute();
     expect(rows).toHaveLength(1);
@@ -64,8 +64,8 @@ describe('POST /api/devices', () => {
     const room = await insertRoom();
 
     const res = await request(app)
-      .post('/api/devices')
-      .send({ deviceType: 'light', name: 'Lamp', roomId: room.id });
+        .post('/api/devices')
+        .send({ deviceType: 'light', name: 'Lamp', roomId: room.id });
 
     expect(res.status).toBe(201);
     expect(res.body.status).toBe('off');
@@ -75,8 +75,8 @@ describe('POST /api/devices', () => {
     const room = await insertRoom();
 
     const res = await request(app)
-      .post('/api/devices')
-      .send({ deviceType: 'light', name: '  Lamp  ', roomId: room.id });
+        .post('/api/devices')
+        .send({ deviceType: 'light', name: '  Lamp  ', roomId: room.id });
 
     expect(res.status).toBe(201);
     expect(res.body.name).toBe('Lamp');
@@ -97,15 +97,15 @@ describe('POST /api/devices', () => {
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
     expect(res.body.error.details).toEqual(
-      expect.arrayContaining([expect.objectContaining({ path: field })]),
+        expect.arrayContaining([expect.objectContaining({ path: field })]),
     );
   });
 
   // Passes Zod (it's a valid number) but fails the foreign key in Postgres
   it('returns 400 against roomId when the room does not exist', async () => {
     const res = await request(app)
-      .post('/api/devices')
-      .send({ deviceType: 'light', name: 'Lamp', roomId: 999 });
+        .post('/api/devices')
+        .send({ deviceType: 'light', name: 'Lamp', roomId: 999 });
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
@@ -117,8 +117,8 @@ describe('POST /api/devices', () => {
     const room = await insertRoom();
 
     const res = await request(app)
-      .post('/api/devices')
-      .send({ deviceType: 'light', name: 'Lamp', roomId: room.id, room: 'Bedroom' });
+        .post('/api/devices')
+        .send({ deviceType: 'light', name: 'Lamp', roomId: room.id, room: 'Bedroom' });
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
@@ -126,9 +126,9 @@ describe('POST /api/devices', () => {
 
   it('returns 400 for malformed JSON', async () => {
     const res = await request(app)
-      .post('/api/devices')
-      .set('Content-Type', 'application/json')
-      .send('{"deviceType":');
+        .post('/api/devices')
+        .set('Content-Type', 'application/json')
+        .send('{"deviceType":');
 
     expect(res.status).toBe(400);
     expect(res.body.error.code).toBe('INVALID_JSON');
@@ -140,8 +140,8 @@ describe('POST /api/devices', () => {
     await insertDevice({ name: 'Lamp', room_id: bedroom.id });
 
     const res = await request(app)
-      .post('/api/devices')
-      .send({ deviceType: 'light', name: 'Lamp', roomId: bedroom.id });
+        .post('/api/devices')
+        .send({ deviceType: 'light', name: 'Lamp', roomId: bedroom.id });
 
     expect(res.status).toBe(201);
     const lamps = await db.selectFrom('devices').select('id').where('name', '=', 'Lamp').execute();
@@ -154,8 +154,8 @@ describe('POST /api/devices', () => {
     await insertDevice({ name: 'Lamp', room_id: bedroom.id });
 
     const res = await request(app)
-      .post('/api/devices')
-      .send({ deviceType: 'light', name: 'Lamp', roomId: office.id });
+        .post('/api/devices')
+        .send({ deviceType: 'light', name: 'Lamp', roomId: office.id });
 
     expect(res.status).toBe(201);
   });
@@ -201,7 +201,8 @@ describe('PATCH /api/devices/:id', () => {
   });
 
   it('changes updatedAt but not createdAt', async () => {
-    const device = await insertDevice();
+    const room = await insertRoom();
+    const device = await insertDevice({ room_id: room.id });
 
     const res = await request(app).patch(`/api/devices/${device.id}`).send({ status: 'on' });
 
@@ -210,20 +211,22 @@ describe('PATCH /api/devices/:id', () => {
   });
 
   it('saves the change to the database', async () => {
-    const device = await insertDevice({ status: 'off' });
+    const room = await insertRoom();
+    const device = await insertDevice({ status: 'off', room_id: room.id });
 
     await request(app).patch(`/api/devices/${device.id}`).send({ status: 'on' });
 
     const row = await db
-      .selectFrom('devices')
-      .select('status')
-      .where('id', '=', device.id)
-      .executeTakeFirstOrThrow();
+        .selectFrom('devices')
+        .select('status')
+        .where('id', '=', device.id)
+        .executeTakeFirstOrThrow();
     expect(row.status).toBe('on');
   });
 
   it('returns 400 for an empty body', async () => {
-    const device = await insertDevice();
+    const room = await insertRoom();
+    const device = await insertDevice({ room_id: room.id });
 
     const res = await request(app).patch(`/api/devices/${device.id}`).send({});
 
@@ -232,21 +235,23 @@ describe('PATCH /api/devices/:id', () => {
   });
 
   it('returns 400 when trying to change deviceType', async () => {
-    const device = await insertDevice({ device_type: 'light' });
+    const room = await insertRoom();
+    const device = await insertDevice({ device_type: 'light', room_id: room.id });
 
     const res = await request(app).patch(`/api/devices/${device.id}`).send({ deviceType: 'plug' });
 
     expect(res.status).toBe(400);
     const row = await db
-      .selectFrom('devices')
-      .select('device_type')
-      .where('id', '=', device.id)
-      .executeTakeFirstOrThrow();
+        .selectFrom('devices')
+        .select('device_type')
+        .where('id', '=', device.id)
+        .executeTakeFirstOrThrow();
     expect(row.device_type).toBe('light');
   });
 
   it('returns 400 for an invalid status', async () => {
-    const device = await insertDevice();
+    const room = await insertRoom();
+    const device = await insertDevice({ room_id: room.id });
 
     const res = await request(app).patch(`/api/devices/${device.id}`).send({ status: 'dim' });
 
@@ -262,10 +267,10 @@ describe('PATCH /api/devices/:id', () => {
     expect(res.status).toBe(400);
     expect(res.body.error.details).toEqual([{ path: 'roomId', message: 'Room does not exist' }]);
     const row = await db
-      .selectFrom('devices')
-      .select('room_id')
-      .where('id', '=', device.id)
-      .executeTakeFirstOrThrow();
+        .selectFrom('devices')
+        .select('room_id')
+        .where('id', '=', device.id)
+        .executeTakeFirstOrThrow();
     expect(row.room_id).toBe(kitchen.id);
   });
 
@@ -296,7 +301,8 @@ describe('PATCH /api/devices/:id', () => {
 
 describe('DELETE /api/devices/:id', () => {
   it('deletes the device and returns 204 with no body', async () => {
-    const device = await insertDevice();
+    const room = await insertRoom();
+    const device = await insertDevice({ room_id: room.id });
 
     const res = await request(app).delete(`/api/devices/${device.id}`);
 
@@ -305,8 +311,9 @@ describe('DELETE /api/devices/:id', () => {
   });
 
   it('removes only that device, and leaves its room in place', async () => {
-    const keep = await insertDevice({ name: 'Keep me' });
-    const remove = await insertDevice({ name: 'Remove me' });
+    const room = await insertRoom();
+    const keep = await insertDevice({ name: 'Keep me', room_id: room.id });
+    const remove = await insertDevice({ name: 'Remove me', room_id: room.id });
 
     await request(app).delete(`/api/devices/${remove.id}`);
 
@@ -315,7 +322,8 @@ describe('DELETE /api/devices/:id', () => {
   });
 
   it('returns 404 when fetching a deleted device', async () => {
-    const device = await insertDevice();
+    const room = await insertRoom();
+    const device = await insertDevice({ room_id: room.id });
     await request(app).delete(`/api/devices/${device.id}`);
 
     const res = await request(app).get(`/api/devices/${device.id}`);
