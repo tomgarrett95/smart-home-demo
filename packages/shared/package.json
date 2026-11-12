@@ -1,19 +1,17 @@
 {
-  "name": "@devices/shared",
+  "name": "@smart-home/packages",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./api": "./src/api.ts",
+    "./devices": "./src/devices.ts",
+    "./rooms": "./src/rooms.ts"
+  },
   "scripts": {
     "typecheck": "tsc"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
   "dependencies": {
-    "zod": "^4.6.7"
-  },
-  "private": true,
-  "exports": { ".": "./src/index.ts" }
+    "zod": "^4"
+  }
 }
-
