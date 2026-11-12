@@ -3,6 +3,7 @@ import { sql } from 'kysely';
 import { db } from './db/client';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { devicesRouter } from './routes/devices';
+import { roomsRouter } from './routes/rooms';
 
 export function createApp() {
   const app = express();
@@ -19,6 +20,7 @@ export function createApp() {
     }
   });
 
+  app.use('/api/rooms', roomsRouter);
   app.use('/api/devices', devicesRouter);
 
   app.use(notFoundHandler);
