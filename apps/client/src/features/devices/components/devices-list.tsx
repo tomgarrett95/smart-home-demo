@@ -4,13 +4,13 @@ import { Card, Spinner, Switch } from '@heroui/react'
 import { DeviceIcon } from '@/features/devices/components/device-icon'
 import { cn } from '@/utils/cn'
 import { ArrowOutward } from '@mui/icons-material'
-import { LinkButton } from '@/components/ui/link-button'
+import { LinkButton } from '@/components/ui'
 import { paths } from '@/config/paths'
 import { useUpdateDevice } from '@/features/devices/api/update-device'
 
 const deviceCardVariants: Record<DeviceStatus, string> = {
     on: 'bg-amber-200',
-    off: 'bg-slate-200',
+    off: 'bg-slate-100',
 }
 
 type DeviceCardProps = {
@@ -19,14 +19,14 @@ type DeviceCardProps = {
 }
 
 const DeviceCard = ({ device }: DeviceCardProps) => {
-    const updateDiscussionMutation = useUpdateDevice({
+    const updateDeviceMutation = useUpdateDevice({
         mutationConfig: {},
     })
 
     return (
         <Card
             className={cn(
-                'h-32 w-60 flex-row items-center',
+                'h-32 w-full flex-row items-center',
                 deviceCardVariants[device.status]
             )}
         >
@@ -53,12 +53,13 @@ const DeviceCard = ({ device }: DeviceCardProps) => {
                         size="lg"
                         isSelected={device.status === 'on'}
                         onChange={() =>
-                            updateDiscussionMutation.mutate({
+                            updateDeviceMutation.mutate({
                                 deviceId: String(device.id),
                                 data: { status: device.status === 'on' ? 'off' : 'on' },
                             })
                         }
                         aria-label="Toggle device status"
+                        className="w-fit"
                     >
                         <Switch.Content>
                             <Switch.Control>
@@ -104,7 +105,7 @@ export const DevicesList = () => {
             {Object.entries(devicesByRoom ?? {}).map(([roomName, devices]) => (
                 <div key={roomName}>
                     <h2 className={'mb-2'}>{roomName}</h2>
-                    <div className={'flex flex-wrap gap-2'}>
+                    <div className={'grid gap-2 sm:grid-cols-2'}>
                         {devices.map((device) => (
                             <DeviceCard
                                 key={device.id}
