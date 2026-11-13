@@ -76,40 +76,39 @@ Errors always use the same shape:
 | `503`  | Health check can't reach the database                                  |
 | `500`  | Unexpected error (no internal details exposed)                         |
 
-## Technology choices
+## Technology choices and key decisions
 
-| Layer        | Choice                                                                             |
-| ------------ | ---------------------------------------------------------------------------------- |
-| Language     | TypeScript throughout                                                              |
-| Frontend     | React 19 + Vite, HeroUI and Tailwind CSS (based on Bulletproof React architecture) |
-| Routing      | React Router                                                                       |
-| Server state | TanStack Query, with axios as the HTTP client                                      |
-| API          | Node.js + Express 5, RESTful                                                       |
-| Validation   | Zod, shared between client and server                                              |
-| Database     | PostgreSQL 16 (Docker for local development)                                       |
-| DB access    | Kysely (type-safe SQL query builder) and its migrator                              |
-| Testing      | Vitest and Supertest, against a real Postgres                                      |
-| Repo         | npm workspaces monorepo, Prettier and Husky pre-commit hooks                       |
+TypeScript is used throughout, in an npm workspaces monorepo. The API and frontend both import the same Zod schemas from `packages/shared`, so request and response types can't drift apart.
 
-## Key decisions
+### Frontend
 
-**Monorepo with a shared package.** The API and frontend both import Zod schemas from `packages/shared`, so request and response types can't drift apart. The shared package exports TypeScript source directly to avoid a build step; in production I'd build it (e.g. with `tsup`) or bundle the API.
+**Stack:** React 19 + Vite, React Router, TanStack Query, axios, HeroUI and Tailwind CSS.
 
-**Separate schemas per operation.** `CreateDeviceSchema`, `UpdateDeviceSchema` and `DeviceSchema` are distinct, because a create payload has no `id`, an update is partial and can't change `deviceType`, and the response includes timestamps and the full room.
+- **Plain React (a Vite single-page app) rather than Next.js.** The app has no public content that needs to rank in search, so there's no need for SEO or server rendering. A static SPA is simpler to build and host. Code is organised by feature, following the Bulletproof React structure.
+- **State lives in the URL and TanStack Query.** The device being viewed comes from the route (`/my-home/devices/:id`), and server data is cached by TanStack Query, which refetches after every change. That leaves almost no local state, so there's no need for Redux or Zustand.
+- **Route loaders prefetch into the query cache**, so pages have their data as soon as they open.
+- **Edits save as you go.** The on/off switch and room save immediately; the name saves after a short pause in typing (using `use-debounce`).
+- **HeroUI and Tailwind** provide accessible, ready-made components.
 
-**Rooms as their own table.** Devices reference a room by `room_id` rather than storing free text, so a room can't be misspelt into two. Room names are unique ignoring case (a unique index on `lower(name)`), and the foreign key uses `ON DELETE RESTRICT`, so Postgres refuses to delete a room that still has devices.
+### Backend
 
-**`PATCH` rather than `PUT`.** Users update individual fields (most often `status`) rather than replacing a whole device.
+**Stack:** Node.js, Express 5, Zod.
 
-**Postgres over SQLite.** SQLite would remove Docker from the setup, but Postgres reflects how this would run in production and handles concurrent writes properly.
+- **A REST API with Express 5.** It's familiar and small, and version 5 passes errors from async handlers to the error middleware.
+- **`PATCH` rather than `PUT`**, because users change one field at a time (most often the status).
+- **Zod validates every request** at the API boundary, with separate schemas for create, update and the response.
+- **A repository layer.** Route handlers call `devicesRepo` and `roomsRepo` rather than querying the database directly, keeping HTTP concerns separate from data access.
+- **Consistent errors.** Every error has the same shape. Database constraint errors become clear `400` or `409` responses, and anything unexpected returns a safe `500`.
 
-**Validation at two layers.** Zod validates at the API boundary; the database enforces the same rules with `CHECK`, unique and foreign key constraints. Database errors are mapped to API errors by constraint name, so each rule gets its own message. The missing-room error has the same shape as a Zod error, so the form can show it against the room field. Unrecognised database errors fall through to a safe `500`.
+### Data
 
-**Kysely rather than an ORM.** Queries read like SQL, so it's always clear what runs against the database, while still being fully type-checked.
+**Stack:** PostgreSQL 16 (in Docker locally), Kysely.
 
-**Repository layer.** Route handlers call small `devicesRepo` and `roomsRepo` modules rather than querying the database directly, keeping HTTP concerns separate from data access.
-
-**Tests against a real database.** API tests run through Supertest against a separate Postgres container that keeps its data in memory (tmpfs). This tests the SQL and constraints for real rather than mocking them. The test setup refuses to run unless the database name contains `_test`, so it can't wipe the dev database.
+- **Postgres over SQLite.** SQLite would remove Docker from the setup, but Postgres matches how this would run in production, lets several API instances share one database, and handles concurrent writes.
+- **Kysely rather than an ORM.** Queries read like SQL and are fully type-checked. The trade-off is that migrations are written by hand.
+- **Rooms as their own table.** Devices reference a room by ID, room names are unique ignoring case, and a room that still has devices can't be deleted.
+- **The database enforces the rules too**, with `CHECK`, unique and foreign key constraints as a backstop to Zod.
+- **Tests run against a real Postgres**, in a separate in-memory container, rather than mocking the database. The test setup refuses to run against anything but the test database.
 
 ### Assumptions
 
@@ -129,7 +128,7 @@ The following assumptions were made to ensure simplicity for this task:
 - **Pagination and filtering** on the device list, by room, type or status. As devices may become more complicated, reduce the payload size of devices when calling `getDevices`.
 - **CI** running typecheck, lint and tests on every pull request.
 - **API documentation** generated from the Zod schemas as OpenAPI.
-- **Observability.** Sentry for error tracking and performance tracing on both the API and the client, plus structured logging (e.g. pino) with request IDs.
+- **Observability.** Sentry for error tracking and performance tracing on both the API and the client.
 - **UUIDv7 IDs** instead of sequential integers, so IDs don't reveal how many records exist and can be generated outside the database.
 - **One UI library.** The client uses HeroUI with MUI icons; I'd settle on one set to reduce bundle size.
 - **Real-time state** (Server-Sent Events or WebSockets) if devices could change state outside the app.
