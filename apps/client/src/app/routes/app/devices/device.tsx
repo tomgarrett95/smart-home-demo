@@ -2,12 +2,13 @@ import { QueryClient } from '@tanstack/react-query'
 import { ContentLayout } from '@/components/layouts'
 import { type LoaderFunctionArgs, useParams } from 'react-router'
 import { getDeviceQueryOptions, useDevice } from '@/features/devices/api/get-device'
-import { Spinner } from '@heroui/react'
+import { Separator, Spinner } from '@heroui/react'
 import { LinkButton } from '@/components/ui'
 import { paths } from '@/config/paths'
 import { ArrowBackIos } from '@mui/icons-material'
 import { UpdateDevice } from '@/features/devices/components/update-device'
 import { DeleteDevice } from '@/features/devices/components/delete-device'
+import { DeviceIcon } from '@/features/devices/components/device-icon'
 
 export const clientLoader =
     (queryClient: QueryClient) =>
@@ -51,14 +52,16 @@ const DeviceRoute = () => {
                         <ArrowBackIos fontSize={'small'} />
                         All devices
                     </LinkButton>
-                    <h1 className="text-2xl font-semibold text-slate-900">
-                        {device.name}
-                    </h1>
+                    <div className={'flex items-center gap-x-2 text-slate-900'}>
+                        <DeviceIcon deviceType={device.deviceType} />
+                        <h1 className="text-2xl font-semibold">{device.name}</h1>
+                    </div>
                 </div>
             }
         >
-            <div className={'flex flex-col gap-y-4'}>
+            <div className={'flex flex-col gap-y-8'}>
                 <UpdateDevice device={device} />
+                <Separator />
                 <DeleteDevice device={device} />
             </div>
         </ContentLayout>
