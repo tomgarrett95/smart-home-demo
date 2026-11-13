@@ -4,10 +4,8 @@ import { createBrowserRouter } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { paths } from '@/config/paths'
 
-import {
-    default as AppRoot,
-    ErrorBoundary as AppRootErrorBoundary,
-} from './routes/app/root'
+import { MainErrorFallback } from '@/components/errors/main'
+import AppRoot from '@/app/routes/app/root'
 
 const convert = (queryClient: QueryClient) => (m: any) => {
     const { clientLoader, clientAction, default: Component, ...rest } = m
@@ -28,7 +26,7 @@ export const createAppRouter = (queryClient: QueryClient) =>
         {
             path: paths.app.root.path,
             element: <AppRoot />,
-            ErrorBoundary: AppRootErrorBoundary,
+            ErrorBoundary: MainErrorFallback,
             children: [
                 {
                     path: paths.app.device.path,
