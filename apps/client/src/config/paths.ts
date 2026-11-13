@@ -1,21 +1,20 @@
 export const paths = {
-    home: {
+    landing: {
         path: '/',
         getHref: () => '/',
     },
 
-    app: {
+    myHome: {
         root: {
-            path: '/app/devices',
-            getHref: () => '/app/devices',
+            path: '/my-home',
+            getHref: () => '/my-home',
         },
         devices: {
-            path: '',
-            getHref: () => '/app/devices',
+            path: 'devices',
         },
         device: {
-            path: ':deviceId',
-            getHref: (id: number) => `/app/devices/${id}`,
+            path: 'devices/:deviceId',
+            getHref: (id: number) => `/my-home/devices/${id}`,
         },
     },
 } as const

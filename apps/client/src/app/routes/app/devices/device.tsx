@@ -46,7 +46,7 @@ const DeviceRoute = () => {
             header={
                 <div className={'flex flex-col gap-y-2'}>
                     <LinkButton
-                        to={paths.app.devices.getHref()}
+                        to={paths.myHome.root.getHref()}
                         variant={'ghost'}
                     >
                         <ArrowBackIos fontSize={'small'} />

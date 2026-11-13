@@ -36,7 +36,7 @@ const DeviceCard = ({ device }: DeviceCardProps) => {
                 className={'text-slate-900'}
             />
             <LinkButton
-                to={paths.app.device.getHref(device.id)}
+                to={paths.myHome.device.getHref(device.id)}
                 isIconOnly={true}
                 aria-label="Go to device"
                 className="absolute inset-e-3 top-3 cursor-pointer"

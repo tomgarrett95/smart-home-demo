@@ -1,6 +1,6 @@
 import { QueryClient, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, Navigate } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { paths } from '@/config/paths'
 
@@ -20,23 +20,32 @@ const convert = (queryClient: QueryClient) => (m: any) => {
 export const createAppRouter = (queryClient: QueryClient) =>
     createBrowserRouter([
         {
-            path: paths.home.path,
+            path: paths.landing.path,
             lazy: () => import('./routes/landing').then(convert(queryClient)),
         },
         {
-            path: paths.app.root.path,
+            path: paths.myHome.root.path,
             element: <AppRoot />,
             ErrorBoundary: MainErrorFallback,
             children: [
                 {
-                    path: paths.app.device.path,
-                    lazy: () =>
-                        import('./routes/app/devices/device').then(convert(queryClient)),
-                },
-                {
-                    path: paths.app.devices.path,
+                    index: true,
                     lazy: () =>
                         import('./routes/app/devices/devices').then(convert(queryClient)),
+                },
+                {
+                    path: paths.myHome.devices.path,
+                    element: (
+                        <Navigate
+                            to={paths.myHome.root.getHref()}
+                            replace
+                        />
+                    ),
+                },
+                {
+                    path: paths.myHome.device.path,
+                    lazy: () =>
+                        import('./routes/app/devices/device').then(convert(queryClient)),
                 },
             ],
         },

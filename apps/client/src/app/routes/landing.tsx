@@ -8,7 +8,7 @@ const LandingRoute = () => {
     const navigate = useNavigate()
 
     const handleStart = () => {
-        navigate(paths.app.root.getHref())
+        navigate(paths.myHome.root.getHref())
     }
 
     return (

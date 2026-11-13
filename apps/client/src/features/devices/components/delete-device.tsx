@@ -13,7 +13,7 @@ export const DeleteDevice = () => {
     const deleteDeviceMutation = useDeleteDevice({
         mutationConfig: {
             onSuccess: () => {
-                navigate(paths.app.devices.getHref())
+                navigate(paths.myHome.root.getHref())
             },
         },
     })

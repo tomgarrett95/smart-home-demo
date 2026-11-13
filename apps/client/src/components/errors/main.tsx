@@ -10,7 +10,7 @@ export const MainErrorFallback = () => {
         >
             <h2 className="text-lg font-semibold">Ooops, something went wrong :( </h2>
             <LinkButton
-                to={paths.app.devices.getHref()}
+                to={paths.myHome.root.getHref()}
                 className="mt-4"
             >
                 <Home />
