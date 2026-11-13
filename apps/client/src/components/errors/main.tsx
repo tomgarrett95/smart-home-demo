@@ -14,7 +14,7 @@ export const MainErrorFallback = () => {
                 className="mt-4"
             >
                 <Home />
-                Go Back to Your Devices
+                Go Back to Your Home
             </LinkButton>
         </div>
     )

@@ -16,12 +16,10 @@ export const clientLoader = (queryClient: QueryClient) => async () => {
 const DevicesRoute = () => {
     return (
         <ContentLayout
-            title={'Your Devices'}
+            title={'Your Home'}
             header={
                 <div className={'flex items-center justify-between'}>
-                    <h1 className="text-2xl font-semibold text-slate-900">
-                        Your Devices
-                    </h1>
+                    <h1 className="text-2xl font-semibold text-slate-900">Your Home</h1>
                     <CreateDevice />
                 </div>
             }
