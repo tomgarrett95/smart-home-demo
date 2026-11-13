@@ -113,7 +113,7 @@ Errors always use the same shape:
 
 ### Assumptions
 
-The following assumptions were made to ensure simplicity for this task.
+The following assumptions were made to ensure simplicity for this task:
 
 - A single household and a single user, so there's no authentication or data scoping.
 - A device's type is fixed once created; you'd delete it and add a new one instead.
