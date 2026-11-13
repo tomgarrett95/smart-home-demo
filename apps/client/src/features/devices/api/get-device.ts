@@ -1,4 +1,4 @@
-import { useQuery, queryOptions } from '@tanstack/react-query'
+import { useQuery, queryOptions, useSuspenseQuery } from '@tanstack/react-query'
 
 import { api } from '@/lib/api-client'
 import type { QueryConfig } from '@/lib/react-query'
@@ -22,6 +22,13 @@ type UseDeviceOptions = {
 
 export const useDevice = ({ deviceId, queryConfig }: UseDeviceOptions) => {
     return useQuery({
+        ...getDeviceQueryOptions(deviceId),
+        ...queryConfig,
+    })
+}
+
+export const useSuspenseDevice = ({ deviceId, queryConfig }: UseDeviceOptions) => {
+    return useSuspenseQuery({
         ...getDeviceQueryOptions(deviceId),
         ...queryConfig,
     })

@@ -1,45 +1,65 @@
 import { useUpdateDevice } from '../api/update-device'
 import {
-    Button,
     FieldError,
     Form,
     Input,
     Label,
+    labelVariants,
     ListBox,
     Select,
     Switch,
     TextField,
 } from '@heroui/react'
-import { type Device, UpdateDeviceSchema } from '@smart-home/packages/devices'
-import { type SyntheticEvent, useState } from 'react'
-import type { ValidationErrors } from '@/utils/toValidationErrors'
+import { UpdateDeviceSchema } from '@smart-home/packages/devices'
+import { type SyntheticEvent, useEffect, useState } from 'react'
+import { useDebouncedCallback } from 'use-debounce'
+import { toValidationErrors, type ValidationErrors } from '@/utils/toValidationErrors'
 import * as z from 'zod'
 import { useRooms } from '@/features/rooms/api/get-rooms'
-import { Save, Undo } from '@mui/icons-material'
+import { useSuspenseDevice } from '@/features/devices/api/get-device'
+import { useParams } from 'react-router'
 
-type UpdateDeviceProps = {
-    device: Device
-}
-
-export const UpdateDevice = ({ device }: UpdateDeviceProps) => {
+export const UpdateDevice = () => {
+    const params = useParams()
+    const deviceId = params.deviceId as string
+    const { data: device } = useSuspenseDevice({ deviceId })
     const [validationErrors, setValidationErrors] = useState<ValidationErrors>({})
+    const [name, setName] = useState(device.name)
     const roomsQuery = useRooms({})
     const updateDeviceMutation = useUpdateDevice()
 
-    const onSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        const formData = new FormData(e.currentTarget)
+    const saveName = useDebouncedCallback((name: string) => {
+        updateDeviceMutation.mutate(
+            { deviceId: String(device.id), data: { name } },
+            { onError: (error) => setValidationErrors(toValidationErrors(error)) }
+        )
+    }, 500)
 
-        const result = UpdateDeviceSchema.safeParse({
-            name: formData.get('name'),
-        })
+    // Leaving the page within the delay still saves what was typed
+    useEffect(() => () => saveName.flush(), [saveName])
 
+    const onNameChange = (value: string) => {
+        setName(value)
+
+        const result = UpdateDeviceSchema.safeParse({ name: value })
         if (!result.success) {
+            saveName.cancel()
             setValidationErrors(z.flattenError(result.error).fieldErrors)
             return
         }
 
-        updateDeviceMutation.mutate({ deviceId: String(device.id), data: result.data })
+        setValidationErrors({})
+        if (result.data.name === undefined || result.data.name === device.name) {
+            saveName.cancel()
+            return
+        }
+        saveName(result.data.name)
+    }
+
+    // Enter saves straight away
+    const onSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        saveName.flush()
     }
 
     return (
@@ -64,6 +84,10 @@ export const UpdateDevice = ({ device }: UpdateDeviceProps) => {
                 </Switch.Content>
             </Switch>
             <div className="flex flex-col gap-4">
+                <div>
+                    <p className={labelVariants()}>Device Type</p>
+                    <p>{device.deviceType}</p>
+                </div>
                 <Form
                     validationErrors={validationErrors}
                     onSubmit={onSubmit}
@@ -73,30 +97,15 @@ export const UpdateDevice = ({ device }: UpdateDeviceProps) => {
                         className="w-full"
                         name="name"
                         type="text"
-                        defaultValue={device?.name}
+                        value={name}
+                        onChange={onNameChange}
+                        onBlur={() => saveName.flush()}
                         variant={'primary'}
                     >
                         <Label>Name</Label>
                         <Input placeholder="Device name" />
                         <FieldError />
                     </TextField>
-                    <div className={'flex justify-end gap-2'}>
-                        <Button
-                            type="reset"
-                            isPending={updateDeviceMutation.isPending}
-                            isIconOnly={true}
-                            variant={'ghost'}
-                        >
-                            <Undo />
-                        </Button>
-                        <Button
-                            type="submit"
-                            isPending={updateDeviceMutation.isPending}
-                            isIconOnly={true}
-                        >
-                            <Save />
-                        </Button>
-                    </div>
                 </Form>
                 <Select
                     placeholder="Select one"

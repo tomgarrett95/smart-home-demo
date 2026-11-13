@@ -1,15 +1,14 @@
 import { useDeleteDevice } from '../api/delete-device'
-import { useNavigate } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { paths } from '@/config/paths'
 import { Button, Modal } from '@heroui/react'
 import { Delete } from '@mui/icons-material'
-import type { Device } from '@smart-home/packages/devices'
+import { useSuspenseDevice } from '@/features/devices/api/get-device'
 
-type DeleteDeviceProps = {
-    device: Device
-}
-
-export const DeleteDevice = ({ device }: DeleteDeviceProps) => {
+export const DeleteDevice = () => {
+    const params = useParams()
+    const deviceId = params.deviceId as string
+    const { data: device } = useSuspenseDevice({ deviceId })
     const navigate = useNavigate()
     const deleteDeviceMutation = useDeleteDevice({
         mutationConfig: {

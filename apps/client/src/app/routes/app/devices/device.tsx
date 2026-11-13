@@ -60,9 +60,9 @@ const DeviceRoute = () => {
             }
         >
             <div className={'flex flex-col gap-y-8'}>
-                <UpdateDevice device={device} />
+                <UpdateDevice />
                 <Separator />
-                <DeleteDevice device={device} />
+                <DeleteDevice />
             </div>
         </ContentLayout>
     )
